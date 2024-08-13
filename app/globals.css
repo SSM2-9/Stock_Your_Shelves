@@ -1,33 +1,36 @@
+@import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400..700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Mongolian&display=swap');
+
 * {
   box-sizing: border-box;
   padding: 0;
   margin: 0;
 }
 
-.dancing-script{
+.dancing-script {
   font-family: "Dancing Script", cursive;
   font-optical-sizing: auto;
   font-weight: 500;
   font-style: normal;
 }
 
-.playfair-display{
+.playfair-display {
   font-family: "Playfair Display", serif;
   font-optical-sizing: auto;
   font-weight: 700;
   font-style: normal;
 }
 
-.playfair-display-regular{
+.playfair-display-regular {
   font-family: "Playfair Display", serif;
   font-optical-sizing: auto;
   font-weight: 500;
   font-style: normal;
 }
 
-.noto-sans-mongolian-regular{
+.noto-sans-mongolian-regular {
   font-family: "Noto Sans Mongolian", sans-serif;
   font-weight: 500;
   font-style: normal;
-
 }

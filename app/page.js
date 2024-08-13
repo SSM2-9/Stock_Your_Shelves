@@ -1,8 +1,9 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { Box, Stack, Typography, Button, Modal, TextField } from '@mui/material'
-import { firestore } from '@/firebase'
+import { useState, useEffect } from 'react';
+import { Box, Stack, Typography, Button, Modal, TextField, Tooltip, IconButton } from '@mui/material';
+import InfoIcon from '@mui/icons-material/Info';
+import { firestore } from '@/firebase';
 import {
   collection,
   doc,
@@ -11,7 +12,7 @@ import {
   setDoc,
   deleteDoc,
   getDoc,
-} from 'firebase/firestore'
+} from 'firebase/firestore';
 
 const modalStyle = {
   position: 'absolute',
@@ -26,95 +27,66 @@ const modalStyle = {
   display: 'flex',
   flexDirection: 'column',
   gap: 3,
-}
+};
 
 export default function Home() {
-  const [inventory, setInventory] = useState([])
-  const [openAdd, setOpenAdd] = useState(false)
-  const [openUpdate, setOpenUpdate] = useState(false)
-  const [itemName, setItemName] = useState('')
-  const [itemQuantity, setItemQuantity] = useState(1)
-  const [currentItem, setCurrentItem] = useState(null)
+  const [inventory, setInventory] = useState([]);
+  const [openAdd, setOpenAdd] = useState(false);
+  const [openUpdate, setOpenUpdate] = useState(false);
+  const [itemName, setItemName] = useState('');
+  const [itemQuantity, setItemQuantity] = useState(1);
+  const [currentItem, setCurrentItem] = useState(null);
 
   const updateInventory = async () => {
-    const snapshot = query(collection(firestore, 'inventory'))
-    const docs = await getDocs(snapshot)
-    const inventoryList = []
+    const snapshot = query(collection(firestore, 'inventory'));
+    const docs = await getDocs(snapshot);
+    const inventoryList = [];
     docs.forEach((doc) => {
-      inventoryList.push({ name: doc.id, ...doc.data() })
-    })
-    setInventory(inventoryList)
-  }
-
-  const suggestRecipe = async () => {
-    const pantryItems = inventory.map(item => item.name).join(", ");
-    
-    try {
-      const response = await fetch('/api/suggestRecipe', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ pantryItems }),
-      });
-  
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-  
-      const data = await response.json();
-      const recipe = data.recipe;
-      alert(`Recipe Suggestion: ${recipe}`);
-    } catch (error) {
-      console.error("Error fetching recipe:", error);
-      alert("Failed to fetch a recipe. Please try again later.");
-    }
+      inventoryList.push({ name: doc.id, ...doc.data() });
+    });
+    setInventory(inventoryList);
   };
 
   const addItem = async (item, quantity) => {
-    const docRef = doc(collection(firestore, 'inventory'), item)
-    const docSnap = await getDoc(docRef)
+    const docRef = doc(collection(firestore, 'inventory'), item);
+    const docSnap = await getDoc(docRef);
     if (docSnap.exists()) {
-      const { quantity: currentQuantity } = docSnap.data()
-      await setDoc(docRef, { quantity: currentQuantity + quantity })
+      const { quantity: currentQuantity } = docSnap.data();
+      await setDoc(docRef, { quantity: currentQuantity + quantity });
     } else {
-      await setDoc(docRef, { quantity: quantity })
+      await setDoc(docRef, { quantity: quantity });
     }
-    await updateInventory()
-  }
+    await updateInventory();
+  };
 
   const updateItemQuantity = async (item, quantity) => {
-    const docRef = doc(collection(firestore, 'inventory'), item)
-    await setDoc(docRef, { quantity: quantity })
-    await updateInventory()
-  }
+    const docRef = doc(collection(firestore, 'inventory'), item);
+    await setDoc(docRef, { quantity: quantity });
+    await updateInventory();
+  };
   
   const removeItem = async (item) => {
-    const docRef = doc(collection(firestore, 'inventory'), item)
-    const docSnap = await getDoc(docRef)
-    if (docSnap.exists()) {
-      const { quantity } = docSnap.data()
-      if (quantity === 1) {
-        await deleteDoc(docRef)
-      } else {
-        await setDoc(docRef, { quantity: quantity - 1 })
-      }
+    const docRef = doc(collection(firestore, 'inventory'), item);
+    try {
+      await deleteDoc(docRef);
+      await updateInventory();
+    } catch (error) {
+      console.error("Error removing item:", error);
     }
-    await updateInventory()
-  }
+  };
 
-  const handleOpenAdd = () => setOpenAdd(true)
-  const handleCloseAdd = () => setOpenAdd(false)
+  const handleOpenAdd = () => setOpenAdd(true);
+  const handleCloseAdd = () => setOpenAdd(false);
   const handleOpenUpdate = (itemName, itemQuantity) => {
-    setCurrentItem(itemName)
-    setItemQuantity(itemQuantity)
-    setOpenUpdate(true)
-  }
-  const handleCloseUpdate = () => setOpenUpdate(false)
+    setCurrentItem(itemName);
+    setItemQuantity(itemQuantity);
+    setOpenUpdate(true);
+  };
+  const handleCloseUpdate = () => setOpenUpdate(false);
   
   useEffect(() => {
-    updateInventory()
-  }, [])
+    updateInventory();
+  }, []);
 
   return (
     <Box
@@ -132,7 +104,49 @@ export default function Home() {
         backgroundBlendMode: 'overlay',
       }}
     >
-      {/* Container to align the inventory box and the button */}
+      {/* GIFs at the top left and right corners */}
+      <Box
+        position="fixed"
+        width="50px"
+        height="50px"
+        display="flex"
+        alignItems="center"
+        style={{
+          left: 0,
+          top: '10px',  // Adjust this value to move it downward from the top
+          paddingLeft: '15px',
+          paddingTop: '50px', // Adjust this value to move the GIF inward
+          zIndex: 10, // Ensure the GIFs appear above other content
+        }}
+      >
+        <img 
+          src="/1.gif"  // Adjusted path
+          alt="Left Corner GIF" 
+          style={{ width: '100px', height: '100px', objectFit: 'contain' }} 
+        />
+      </Box>
+
+      <Box
+        position="fixed"
+        width="50px"
+        height="50px"
+        display="flex"
+        alignItems="center"
+        style={{
+          right: 0,
+          top: '10px',  // Adjust this value to move it downward from the top
+          paddingRight: '128px', // Adjust this value to move the GIF inward
+          paddingTop: '50px',
+          zIndex: 10, // Ensure the GIFs appear above other content
+        }}
+      >
+        <img 
+          src="/2.gif"  // Adjusted path
+          alt="Right Corner GIF" 
+          style={{ width: '120px', height: '120px', objectFit: 'contain' }} 
+        />
+      </Box>
+
       <Box
         display="flex"
         flexDirection="column"
@@ -140,17 +154,17 @@ export default function Home() {
         flex={1}
         overflow="auto"
       >
-        {/* Inventory Items Box */}
         <Box
           width="100%"
           maxWidth="1200px"
-          margin-left="auto"
-          margin-right="auto"
+          marginLeft="auto"
+          marginRight="auto"
           padding={3}
           bgcolor="rgba(146, 106, 64, 0.7)"
           boxShadow="0 4px 8px rgba(0, 0, 0, 0.1)"
           mt={4}
-          mb={4} // Margin bottom to separate from the button
+          mb={4}
+          position="relative" // Ensure this box is a containing block for the tooltip
         >
           <Box
             width="100%"
@@ -162,8 +176,16 @@ export default function Home() {
             borderRadius="4px 4px 0 0"
           >
             <Typography variant="h3" color="rgb(49, 31, 23)" textAlign="center" className="dancing-script">
-              My Pantry
+              Stock Your Shelves
             </Typography>
+            {/* Info Icon with Tooltip */}
+            <Tooltip title="Welcome to your pantry hub! Here, you can effortlessly add new items to keep your kitchen well-stocked and organized. Whether you're replenishing your essentials or adding something new, this is your go-to spot for managing your pantry inventory. Keep your shelves full and your cooking adventures deliciously prepared!" arrow>
+              <IconButton
+                style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)' }}
+              >
+                <InfoIcon />
+              </IconButton>
+            </Tooltip>
           </Box>
           <Stack
             width="100%"
@@ -195,10 +217,11 @@ export default function Home() {
                   <Button
                     variant="contained"
                     onClick={() => handleOpenUpdate(name, quantity)}
+                    sx={{bgcolor:"rgba(146, 106, 64, 0.7)",}}
                   >
                     Update
                   </Button>
-                  <Button variant="contained" onClick={() => removeItem(name)}>
+                  <Button variant="contained" onClick={() => removeItem(name)} sx={{bgcolor:"rgba(146, 106, 64, 0.7)",}}>
                     Remove
                   </Button>
                 </Stack>
@@ -207,17 +230,11 @@ export default function Home() {
           </Stack>
         </Box>
 
-        {/* Add New Item Button - Positioned below the inventory box */}
-        <Button variant="contained" onClick={handleOpenAdd} sx={{ marginTop: 0 }}>
+        <Button variant="contained" onClick={handleOpenAdd} sx={{ marginTop: 2, bgcolor:"rgba(146, 106, 64, 0.7)",}} className="Add_bt">
           Add New Item
-        </Button>
-
-        <Button variant="contained" onClick={suggestRecipe} sx={{ marginTop: 2 }}>
-          Suggest a Recipe
         </Button>
       </Box>
 
-      {/* Modal for Adding New Item */}
       <Modal
         open={openAdd}
         onClose={handleCloseAdd}
@@ -250,8 +267,8 @@ export default function Home() {
           <Button
             variant="outlined"
             onClick={() => {
-              addItem(itemName, itemQuantity)
-              handleCloseAdd()
+              addItem(itemName, itemQuantity);
+              handleCloseAdd();
             }}
           >
             Add
@@ -259,7 +276,6 @@ export default function Home() {
         </Box>
       </Modal>
 
-      {/* Modal for Updating Item Quantity */}
       <Modal
         open={openUpdate}
         onClose={handleCloseUpdate}
@@ -282,14 +298,15 @@ export default function Home() {
           <Button
             variant="outlined"
             onClick={() => {
-              updateItemQuantity(currentItem, itemQuantity)
-              handleCloseUpdate()
+              updateItemQuantity(currentItem, itemQuantity);
+              handleCloseUpdate();
             }}
           >
             Update
           </Button>
         </Box>
       </Modal>
+      
     </Box>
-  )
+  );
 }
