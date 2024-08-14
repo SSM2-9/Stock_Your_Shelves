@@ -181,7 +181,7 @@ export default function Home() {
             {/* Info Icon with Tooltip */}
             <Tooltip title="Welcome to your pantry hub! Here, you can effortlessly add new items to keep your kitchen well-stocked and organized. Whether you're replenishing your essentials or adding something new, this is your go-to spot for managing your pantry inventory. Keep your shelves full and your cooking adventures deliciously prepared!" arrow>
               <IconButton
-                style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)' }}
+                style={{ position: 'fixed', right: '10px', top: '50%', transform: 'translateY(-50%)' }}
               >
                 <InfoIcon />
               </IconButton>
@@ -192,8 +192,9 @@ export default function Home() {
             height="500px"
             spacing={2}
             overflow="auto"
-            padding={2}
+            padding
             bgcolor="rgba(240, 240, 240, 0.8)"
+
           >
             {inventory.map(({ name, quantity }) => (
               <Box
