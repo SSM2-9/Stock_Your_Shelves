@@ -37,37 +37,49 @@ export default function Home() {
   const [itemQuantity, setItemQuantity] = useState(1);
   const [currentItem, setCurrentItem] = useState(null);
 
+  // Fetch and update inventory
   const updateInventory = async () => {
-    const snapshot = query(collection(firestore, 'inventory'));
-    const docs = await getDocs(snapshot);
-    const inventoryList = [];
-    docs.forEach((doc) => {
-      inventoryList.push({ name: doc.id, ...doc.data() });
-    });
-    setInventory(inventoryList);
-  };
-
-  const addItem = async (item, quantity) => {
-    const docRef = doc(collection(firestore, 'inventory'), item);
-    const docSnap = await getDoc(docRef);
-    if (docSnap.exists()) {
-      const { quantity: currentQuantity } = docSnap.data();
-      await setDoc(docRef, { quantity: currentQuantity + quantity });
-    } else {
-      await setDoc(docRef, { quantity: quantity });
-    }
-    await updateInventory();
-  };
-
-  const updateItemQuantity = async (item, quantity) => {
-    const docRef = doc(collection(firestore, 'inventory'), item);
-    await setDoc(docRef, { quantity: quantity });
-    await updateInventory();
-  };
-  
-  const removeItem = async (item) => {
-    const docRef = doc(collection(firestore, 'inventory'), item);
     try {
+      const snapshot = query(collection(firestore, 'inventory'));
+      const docs = await getDocs(snapshot);
+      const inventoryList = docs.docs.map(doc => ({ name: doc.id, ...doc.data() }));
+      setInventory(inventoryList);
+    } catch (error) {
+      console.error("Error fetching inventory:", error);
+    }
+  };
+
+  // Add item to inventory
+  const addItem = async (item, quantity) => {
+    if (!item) return; // Validate item name
+    try {
+      const docRef = doc(collection(firestore, 'inventory'), item);
+      const docSnap = await getDoc(docRef);
+      const currentQuantity = docSnap.exists() ? docSnap.data().quantity : 0;
+      await setDoc(docRef, { quantity: currentQuantity + quantity });
+      await updateInventory();
+    } catch (error) {
+      console.error("Error adding item:", error);
+    }
+  };
+
+  // Update item quantity
+  const updateItemQuantity = async (item, quantity) => {
+    if (!item || quantity < 0) return; // Validate item name and quantity
+    try {
+      const docRef = doc(collection(firestore, 'inventory'), item);
+      await setDoc(docRef, { quantity });
+      await updateInventory();
+    } catch (error) {
+      console.error("Error updating item quantity:", error);
+    }
+  };
+
+  // Remove item from inventory
+  const removeItem = async (item) => {
+    if (!item) return; // Validate item name
+    try {
+      const docRef = doc(collection(firestore, 'inventory'), item);
       await deleteDoc(docRef);
       await updateInventory();
     } catch (error) {
@@ -75,6 +87,7 @@ export default function Home() {
     }
   };
 
+  // Modal handlers
   const handleOpenAdd = () => setOpenAdd(true);
   const handleCloseAdd = () => setOpenAdd(false);
   const handleOpenUpdate = (itemName, itemQuantity) => {
@@ -83,7 +96,7 @@ export default function Home() {
     setOpenUpdate(true);
   };
   const handleCloseUpdate = () => setOpenUpdate(false);
-  
+
   useEffect(() => {
     updateInventory();
   }, []);
@@ -113,16 +126,16 @@ export default function Home() {
         alignItems="center"
         style={{
           left: 0,
-          top: '10px',  // Adjust this value to move it downward from the top
+          top: '10px',
           paddingLeft: '15px',
-          paddingTop: '50px', // Adjust this value to move the GIF inward
-          zIndex: 10, // Ensure the GIFs appear above other content
+          paddingTop: '50px',
+          zIndex: 10,
         }}
       >
         <img 
-          src="/1.gif"  // Adjusted path
-          alt="Left Corner GIF" 
-          style={{ width: '100px', height: '100px', objectFit: 'contain' }} 
+          src="/1.gif"
+          alt="Left Corner GIF"
+          style={{ width: '100px', height: '100px', objectFit: 'contain' }}
         />
       </Box>
 
@@ -134,16 +147,16 @@ export default function Home() {
         alignItems="center"
         style={{
           right: 0,
-          top: '10px',  // Adjust this value to move it downward from the top
-          paddingRight: '128px', // Adjust this value to move the GIF inward
+          top: '10px',
+          paddingRight: '128px',
           paddingTop: '50px',
-          zIndex: 10, // Ensure the GIFs appear above other content
+          zIndex: 10,
         }}
       >
         <img 
-          src="/2.gif"  // Adjusted path
-          alt="Right Corner GIF" 
-          style={{ width: '120px', height: '120px', objectFit: 'contain' }} 
+          src="/2.gif"
+          alt="Right Corner GIF"
+          style={{ width: '120px', height: '120px', objectFit: 'contain' }}
         />
       </Box>
 
@@ -157,14 +170,13 @@ export default function Home() {
         <Box
           width="100%"
           maxWidth="1200px"
-          marginLeft="auto"
-          marginRight="auto"
+          margin="auto"
           padding={3}
           bgcolor="rgba(146, 106, 64, 0.7)"
           boxShadow="0 4px 8px rgba(0, 0, 0, 0.1)"
           mt={4}
           mb={4}
-          position="relative" // Ensure this box is a containing block for the tooltip
+          position="relative"
         >
           <Box
             width="100%"
@@ -178,7 +190,6 @@ export default function Home() {
             <Typography variant="h3" color="rgb(49, 31, 23)" textAlign="center" className="dancing-script">
               Stock Your Shelves
             </Typography>
-            {/* Info Icon with Tooltip */}
             <Tooltip title="Welcome to your pantry hub! Here, you can effortlessly add new items to keep your kitchen well-stocked and organized. Whether you're replenishing your essentials or adding something new, this is your go-to spot for managing your pantry inventory. Keep your shelves full and your cooking adventures deliciously prepared!" arrow>
               <IconButton
                 style={{ position: 'fixed', right: '10px', top: '50%', transform: 'translateY(-50%)' }}
@@ -194,7 +205,6 @@ export default function Home() {
             overflow="auto"
             padding
             bgcolor="rgba(240, 240, 240, 0.8)"
-
           >
             {inventory.map(({ name, quantity }) => (
               <Box
@@ -218,11 +228,15 @@ export default function Home() {
                   <Button
                     variant="contained"
                     onClick={() => handleOpenUpdate(name, quantity)}
-                    sx={{bgcolor:"rgba(146, 106, 64, 0.7)",}}
+                    sx={{ bgcolor: "rgba(146, 106, 64, 0.7)" }}
                   >
                     Update
                   </Button>
-                  <Button variant="contained" onClick={() => removeItem(name)} sx={{bgcolor:"rgba(146, 106, 64, 0.7)",}}>
+                  <Button
+                    variant="contained"
+                    onClick={() => removeItem(name)}
+                    sx={{ bgcolor: "rgba(146, 106, 64, 0.7)" }}
+                  >
                     Remove
                   </Button>
                 </Stack>
@@ -231,7 +245,12 @@ export default function Home() {
           </Stack>
         </Box>
 
-        <Button variant="contained" onClick={handleOpenAdd} sx={{ marginTop: 2, bgcolor:"rgba(146, 106, 64, 0.7)",}} className="Add_bt">
+        <Button
+          variant="contained"
+          onClick={handleOpenAdd}
+          sx={{ marginTop: 2, bgcolor: "rgba(146, 106, 64, 0.7)" }}
+          className="Add_bt"
+        >
           Add New Item
         </Button>
       </Box>
@@ -246,7 +265,7 @@ export default function Home() {
           <Typography id="modal-add-title" variant="h6" component="h2">
             Add Item
           </Typography>
-          <Stack width="100%" direction={'row'} spacing={2}>
+          <Stack width="100%" direction="row" spacing={2}>
             <TextField
               id="item-name"
               label="Item Name"
@@ -262,7 +281,7 @@ export default function Home() {
               variant="outlined"
               fullWidth
               value={itemQuantity}
-              onChange={(e) => setItemQuantity(parseInt(e.target.value) || 1)}
+              onChange={(e) => setItemQuantity(parseInt(e.target.value, 10) || 1)}
             />
           </Stack>
           <Button
@@ -294,7 +313,7 @@ export default function Home() {
             variant="outlined"
             fullWidth
             value={itemQuantity}
-            onChange={(e) => setItemQuantity(parseInt(e.target.value) || 1)}
+            onChange={(e) => setItemQuantity(parseInt(e.target.value, 10) || 1)}
           />
           <Button
             variant="outlined"
