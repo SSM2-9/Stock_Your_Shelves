@@ -1,6 +1,5 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
-import { getAnalytics } from "firebase/analytics";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -18,12 +17,5 @@ const app = initializeApp(firebaseConfig);
 
 // Initialize Firestore
 const firestore = getFirestore(app);
-
-// Optionally, Initialize Analytics (client-side only)
-let analytics;
-if (typeof window !== "undefined") {
-  const { getAnalytics } = require("firebase/analytics");
-  analytics = getAnalytics(app);
-}
 
 export { app, firestore };
