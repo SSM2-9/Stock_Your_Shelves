@@ -50,18 +50,30 @@ export default function Home() {
   };
 
   // Add item to inventory
-  const addItem = async (item, quantity) => {
-    if (!item) return; // Validate item name
-    try {
-      const docRef = doc(collection(firestore, 'inventory'), item);
-      const docSnap = await getDoc(docRef);
-      const currentQuantity = docSnap.exists() ? docSnap.data().quantity : 0;
-      await setDoc(docRef, { quantity: currentQuantity + quantity });
-      await updateInventory();
-    } catch (error) {
-      console.error("Error adding item:", error);
-    }
-  };
+  // Add item to inventory
+const addItem = async (item, quantity) => {
+  if (!item) {
+    console.error('Item name is required.');
+    return;
+  }
+
+  try {
+    const docRef = doc(collection(firestore, 'inventory'), item);
+    const docSnap = await getDoc(docRef);
+    
+    console.log('docSnap exists:', docSnap.exists());
+
+    const currentQuantity = docSnap.exists() ? docSnap.data().quantity : 0;
+    console.log('Current quantity:', currentQuantity);
+
+    await setDoc(docRef, { quantity: currentQuantity + quantity });
+    console.log(`Item ${item} added with quantity ${quantity}.`);
+    
+    await updateInventory();
+  } catch (error) {
+    console.error('Error adding item:', error);
+  }
+};
 
   // Update item quantity
   const updateItemQuantity = async (item, quantity) => {
